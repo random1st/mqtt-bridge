@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/random1st/mqtt-bridge/internal/bridge"
 	"github.com/random1st/mqtt-bridge/internal/config"
 	"github.com/random1st/mqtt-bridge/internal/logger"
 	"go.uber.org/zap"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -26,6 +28,13 @@ func main() {
 		zap.String("local_host", cfg.LocalBroker.Host),
 		zap.String("log_level", cfg.LoggingLevel),
 	)
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		err := http.ListenAndServe(":2112", nil)
+		if err != nil {
+			log.Printf("Prometheus metrics server failed: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	if err := bridge.RunBridges(ctx, cfg, bridge.CreateMQTTClient); err != nil {

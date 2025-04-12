@@ -56,7 +56,15 @@ clean:
 
 docker-build:
 	@echo "==> Building Docker image..."
-	docker buildx build   --platform linux/amd64  -t mqtt-bridge:latest .
+	docker buildx build   --platform linux/amd64  -t random1st/mqtt-bridge:latest .
 	@echo "==> Docker image built successfully."
 	@echo "==> To run the Docker container, use:"
-	@echo "    docker run -it --rm mqtt-bridge:latest"
+	@echo "docker run -it --rm mqtt-bridge:latest"
+
+docker-push:
+	@echo "==> Pushing Docker image to Docker Hub..."
+	docker push random1st/mqtt-bridge:latest
+	@echo "==> Docker image pushed successfully."
+	@echo "==> To run the Docker container, use:"
+
+

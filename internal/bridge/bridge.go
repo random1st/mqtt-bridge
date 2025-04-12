@@ -3,6 +3,7 @@ package bridge
 import (
 	"context"
 	"fmt"
+	"github.com/random1st/mqtt-bridge/internal/metrics"
 	"sync"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -10,6 +11,10 @@ import (
 	"github.com/random1st/mqtt-bridge/internal/config"
 	"github.com/random1st/mqtt-bridge/internal/logger"
 	"go.uber.org/zap"
+)
+
+var (
+	mqttBridgeMessages = metrics.GetBridgeMessagesCounter()
 )
 
 type Pair struct {
@@ -42,6 +47,8 @@ func startBridge(ctx context.Context, bp Pair) error {
 			zap.Int("payloadLength", len(msg.Payload())),
 		)
 		bp.ToClient.Publish(msg.Topic(), 0, false, msg.Payload())
+		mqttBridgeMessages.WithLabelValues(bp.Name, bp.TopicPattern).Inc()
+
 	})
 	token.Wait()
 	if token.Error() != nil {
