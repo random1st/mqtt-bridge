@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mqtt-bridge-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mqtt-bridge
+  template:
+    metadata:
+      labels:
+        app: mqtt-bridge
+    spec:
+      containers:
+      - name: mqtt-bridge
+        image: 064739708360.dkr.ecr.us-east-1.amazonaws.com/mqtt-bridge
+        imagePullPolicy: Always
+        env:
+        - name: ENV
+          value: "staging"
+        - name: OLD_MQTT_HOST
+          value: "kolonidclock-vzzlrx.a03.euc1.aws.hivemq.cloud"
+        - name: OLD_MQTT_PORT
+          value: "8883"
+        - name: OLD_MQTT_USER
+          value: "hivemq.client.1731960296977"
+        - name: OLD_MQTT_PASS
+          value: "%BD<af1.6SqT0p#C9mYd"
+        - name: NEW_MQTT_HOST
+          value: "koloni-staging.infra.locker-os.com"
+        - name: NEW_MQTT_PORT
+          value: "8883"
+        - name: NEW_MQTT_USER
+          value: "mqtt_user"
+        - name: NEW_MQTT_PASS
+          value: "L4iY99ogUOYaRXc0"

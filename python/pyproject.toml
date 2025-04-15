@@ -1,0 +1,16 @@
+[project]
+name = "mqttmiddle"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "gmqtt>=0.7.0",
+    "paho-mqtt>=2.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.15.0",
+    "ruff>=0.11.5",
+]

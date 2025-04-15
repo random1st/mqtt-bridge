@@ -1,0 +1,15 @@
+config:
+  LOCAL_BROKER__HOST: "kolonidclock-vzzlrx.a03.euc1.aws.hivemq.cloud"
+  LOCAL_BROKER__PORT: "8883"
+  LOCAL_BROKER__USER: "hivemq.client.1731960296977"
+  LOCAL_BROKER__PASS: '%BD<af1.6SqT0p#C9mYd'
+  LOCAL_BROKER__TLS: "true"
+  REMOTE_BROKER__HOST: "koloni-production.infra.locker-os.com"
+  REMOTE_BROKER__PORT: "8883"
+  REMOTE_BROKER__USER: "mqtt_user"
+  REMOTE_BROKER__PASS: "ekQBls7mbpLpsfmD"
+  REMOTE_BROKER__TLS: "true"
+  INCOMING_PATTERNS: "+/cmd"
+  OUTGOING_PATTERNS: "/status"
+  LOGGING_LEVEL: "info"
+
