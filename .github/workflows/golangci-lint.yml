@@ -18,7 +18,7 @@ jobs:
 
       - name: Install golangci-lint
         run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.56.2
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin $(curl -s https://api.github.com/repos/golangci/golangci-lint/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/v\1/')
 
       - name: Run linter
         run: golangci-lint run ./...
