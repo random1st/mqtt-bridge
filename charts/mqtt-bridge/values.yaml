@@ -2,8 +2,10 @@ replicaCount: 1
 
 image:
   repository: "random1st/mqtt-bridge"
-  pullPolicy: "IfNotPresent"
+  pullPolicy: "Always"
   tag: "latest"
+
+forceRestart: "{{ now | quote }}"
 
 service:
   type: ClusterIP

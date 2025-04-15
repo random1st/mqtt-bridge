@@ -11,6 +11,8 @@ spec:
       {{- include "mqtt-bridge.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        rollme: {{ .Values.forceRestart | quote }}
       labels:
         {{- include "mqtt-bridge.selectorLabels" . | nindent 8 }}
     spec:

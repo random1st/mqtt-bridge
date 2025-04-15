@@ -73,12 +73,12 @@ func runBridgeTest(cfg *config.BridgeConfig) error {
 	}
 	defer bridge.DisconnectMQTT(remoteClient, "test-remote")
 
-	if err := testMessageFlow(remoteClient, localClient, "dev/status", "Hello from Remote -> Local"); err != nil {
+	if err := testMessageFlow(remoteClient, localClient, config.HealthCheckIncoming, "Hello from Remote -> Local"); err != nil {
 		return fmt.Errorf("test Remote->Local failed: %w", err)
 	}
 	logger.L().Info("Test Remote->Local passed")
 
-	if err := testMessageFlow(localClient, remoteClient, "dev/test/cmd", "Hello from Local -> Remote"); err != nil {
+	if err := testMessageFlow(localClient, remoteClient, config.HealthCheckOutgoing, "Hello from Local -> Remote"); err != nil {
 		return fmt.Errorf("test Local->Remote failed: %w", err)
 	}
 	logger.L().Info("Test Local->Remote passed")
