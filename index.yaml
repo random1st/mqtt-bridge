@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  mqtt-bridge:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2025-04-15T07:20:14.223532602Z"
+    description: A Helm chart for Kubernetes
+    digest: 1589fd82d63cadc6da16fbe02d35ad3228c8b546c18319e33c17afe45a4a1ea8
+    name: mqtt-bridge
+    type: application
+    urls:
+    - https://random1st.github.io/mqtt-bridge/mqtt-bridge-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-04-15T07:20:14.223109875Z"
