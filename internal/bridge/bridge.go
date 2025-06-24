@@ -81,7 +81,7 @@ func RunBridges(ctx context.Context, cfg *config.BridgeConfig, createClient func
 
 			bridgeName := fmt.Sprintf("Incoming-%d", index)
 
-			var toClient mqtt.Client = createClient(cfg.LocalBroker, "local", nil)
+			var toClient = createClient(cfg.LocalBroker, "local", nil)
 
 			fromClient := createClient(cfg.RemoteBroker, "remote", func(c mqtt.Client) {
 				logger.L().Info("Reconnected. Re-subscribing", zap.String("bridge", bridgeName), zap.String("topic", topic))
