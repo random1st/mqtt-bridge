@@ -70,42 +70,95 @@ func startBridge(ctx context.Context, bp Pair) error {
 	return nil
 }
 
-func RunBridges(ctx context.Context, cfg *config.BridgeConfig, createClient func(cfg config.BrokerConfig, prefix string) mqtt.Client) error {
+func RunBridges(ctx context.Context, cfg *config.BridgeConfig, createClient func(cfg config.BrokerConfig, prefix string, onConnect mqtt.OnConnectHandler) mqtt.Client) error {
 	var wg sync.WaitGroup
 
-	for i, pattern := range cfg.IncomingPatterns {
-		logger.L().Info("Starting incoming bridge", zap.String("topicPattern", pattern))
+	for i, topic := range cfg.IncomingPatterns {
+		logger.L().Info("Starting incoming bridge", zap.String("topicPattern", topic))
 		wg.Add(1)
 		go func(index int, topic string) {
 			defer wg.Done()
+
+			bridgeName := fmt.Sprintf("Incoming-%d", index)
+
+			var toClient mqtt.Client = createClient(cfg.LocalBroker, "local", nil)
+
+			fromClient := createClient(cfg.RemoteBroker, "remote", func(c mqtt.Client) {
+				logger.L().Info("Reconnected. Re-subscribing", zap.String("bridge", bridgeName), zap.String("topic", topic))
+				token := c.Subscribe(topic, 0, func(client mqtt.Client, msg mqtt.Message) {
+					logger.L().Debug("Received message, forwarding",
+						zap.String("bridge", bridgeName),
+						zap.String("topic", msg.Topic()),
+						zap.Int("payloadLength", len(msg.Payload())),
+					)
+					toClient.Publish(msg.Topic(), 0, false, msg.Payload())
+					mqttBridgeMessages.WithLabelValues(bridgeName, topic).Inc()
+				})
+				token.Wait()
+				if token.Error() != nil {
+					logger.L().Error("Re-subscribe failed", zap.String("bridge", bridgeName), zap.Error(token.Error()))
+				}
+			})
+
 			pair := Pair{
-				Name:         fmt.Sprintf("Incoming-%d", index),
-				FromClient:   createClient(cfg.RemoteBroker, "remote"),
-				ToClient:     createClient(cfg.LocalBroker, "local"),
+				Name:         bridgeName,
+				FromClient:   fromClient,
+				ToClient:     toClient,
 				FromConfig:   cfg.RemoteBroker,
 				ToConfig:     cfg.LocalBroker,
 				TopicPattern: topic,
 			}
-			err := startBridge(ctx, pair)
-			if err != nil {
+
+			if err := startBridge(ctx, pair); err != nil {
 				logger.L().Warn("Error starting incoming bridge", zap.Int("index", index), zap.Error(err))
 			}
-		}(i, pattern)
+		}(i, topic)
 	}
 
 	for i, pattern := range cfg.OutgoingPatterns {
 		logger.L().Info("Starting outgoing bridge", zap.String("topicPattern", pattern))
 		wg.Add(1)
+
 		go func(index int, topic string) {
 			defer wg.Done()
+
+			bridgeName := fmt.Sprintf("Outgoing-%d", index)
+
+			toClient := createClient(cfg.RemoteBroker, "remote", nil)
+
+			fromClient := createClient(cfg.LocalBroker, "local", func(c mqtt.Client) {
+				logger.L().Info("Reconnected. Re-subscribing",
+					zap.String("bridge", bridgeName),
+					zap.String("topic", topic),
+				)
+
+				token := c.Subscribe(topic, 0, func(client mqtt.Client, msg mqtt.Message) {
+					logger.L().Debug("Received message, forwarding",
+						zap.String("bridge", bridgeName),
+						zap.String("topic", msg.Topic()),
+						zap.Int("payloadLength", len(msg.Payload())),
+					)
+					toClient.Publish(msg.Topic(), 0, false, msg.Payload())
+					mqttBridgeMessages.WithLabelValues(bridgeName, topic).Inc()
+				})
+
+				token.Wait()
+				if token.Error() != nil {
+					logger.L().Error("Re-subscribe failed",
+						zap.String("bridge", bridgeName),
+						zap.Error(token.Error()))
+				}
+			})
+
 			pair := Pair{
-				Name:         fmt.Sprintf("Outgoing-%d", index),
-				FromClient:   createClient(cfg.LocalBroker, "local"),
-				ToClient:     createClient(cfg.RemoteBroker, "remote"),
+				Name:         bridgeName,
+				FromClient:   fromClient,
+				ToClient:     toClient,
 				FromConfig:   cfg.LocalBroker,
 				ToConfig:     cfg.RemoteBroker,
 				TopicPattern: topic,
 			}
+
 			err := startBridge(ctx, pair)
 			if err != nil {
 				logger.L().Warn("Error starting outgoing bridge", zap.Int("index", index), zap.Error(err))

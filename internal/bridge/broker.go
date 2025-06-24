@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func CreateMQTTClient(broker config.BrokerConfig, prefix string) mqtt.Client {
+func CreateMQTTClient(broker config.BrokerConfig, prefix string, onConnect mqtt.OnConnectHandler) mqtt.Client {
 	scheme := "tcp"
 	if broker.TLS {
 		scheme = "tcps"
@@ -35,6 +35,16 @@ func CreateMQTTClient(broker config.BrokerConfig, prefix string) mqtt.Client {
 	opts.SetKeepAlive(60 * time.Second)
 	opts.SetConnectTimeout(10 * time.Second)
 	opts.SetAutoReconnect(true)
+
+	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
+		logger.L().Warn("MQTT connection lost", zap.String("client", prefix), zap.Error(err))
+	})
+	opts.SetOnConnectHandler(func(c mqtt.Client) {
+		logger.L().Info("MQTT reconnected", zap.String("client", prefix))
+		if onConnect != nil {
+			onConnect(c)
+		}
+	})
 
 	return mqtt.NewClient(opts)
 }

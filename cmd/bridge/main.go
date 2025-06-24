@@ -60,8 +60,8 @@ func main() {
 func runBridgeTest(cfg *config.BridgeConfig) error {
 	logger.L().Info("Starting bridge integration test...")
 
-	localClient := bridge.CreateMQTTClient(cfg.LocalBroker, "test-local")
-	remoteClient := bridge.CreateMQTTClient(cfg.RemoteBroker, "test-remote")
+	localClient := bridge.CreateMQTTClient(cfg.LocalBroker, "test-local", nil)
+	remoteClient := bridge.CreateMQTTClient(cfg.RemoteBroker, "test-remote", nil)
 
 	if err := bridge.ConnectMQTT(localClient, cfg.LocalBroker, "test-local"); err != nil {
 		return fmt.Errorf("failed to connect local broker: %w", err)
